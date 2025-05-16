@@ -26,4 +26,4 @@ jobs:
 
       # Étape 3 : Build + Tests (unitaires et d'intégration)
       - name: Build and test with Maven
-        run: mvn clean verify --file ./apisimple/pom.xml
+        run: mvn clean verify --file ./simple-api/pom.xml
