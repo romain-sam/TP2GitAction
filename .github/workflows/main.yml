@@ -28,7 +28,6 @@ jobs:
       - name: Build and test with Maven
         run: mvn clean verify --file ./simple-api/pom.xml
 
-        run: mvn clean verify --file ./apisimple/pom.xml
         
   build-and-push-docker-image:
     needs: test-backend
