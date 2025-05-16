@@ -23,12 +23,13 @@ jobs:
         run: mvn clean verify --file ./simple-api/pom.xml
 
       - name: Run SonarCloud analysis
-        run: mvn -B verify sonar:sonar \
-          -Dsonar.projectKey=romain-sam_TP2GitAction \
-          -Dsonar.organization=romain-sam \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-          --file ./simple-api/pom.xml
+        run: |
+          mvn -B verify sonar:sonar \
+            -Dsonar.projectKey=romain-sam_TP2GitAction \
+            -Dsonar.organization=romain-sam \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            --file ./simple-api/pom.xml
 
   build-and-push-docker-image:
     needs: test-backend
