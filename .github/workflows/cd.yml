@@ -6,9 +6,6 @@ on:
     types:
       - completed
 
-permissions:
-  contents: write  # ✅ Autorise le push vers le repo
-
 jobs:
   update-version:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -28,10 +25,11 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git add simple-api/pom.xml
           git commit -m "Update version to 0.0.${{ github.run_number }}-SNAPSHOT"
           git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-push-docker-image:
     needs: update-version
@@ -46,7 +44,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libxml2-utils
           VERSION=$(xmllint --xpath "string(//project/version)" simple-api/pom.xml)
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
@@ -57,7 +55,8 @@ jobs:
           context: ./simple-api
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:${{ steps.version.outputs.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:${{ steps.version.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:${{ github.run_number }}
           push: true
 
       - name: Build and push database
@@ -65,7 +64,8 @@ jobs:
         with:
           context: ./database
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:${{ steps.version.outputs.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:${{ steps.version.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:${{ github.run_number }}
           push: true
 
       - name: Build and push httpd
@@ -73,5 +73,6 @@ jobs:
         with:
           context: ./http-server
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:${{ steps.version.outputs.VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:${{ steps.version.outputs.version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:${{ github.run_number }}
           push: true
