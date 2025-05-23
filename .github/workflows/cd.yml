@@ -29,8 +29,9 @@ jobs:
           NEW_PATCH=$((PATCH + 1))
           NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH-SNAPSHOT"
 
-          # Replace version in pom.xml
+          # Replace in pom.xml
           sed -i "s/<version>$CURRENT_VERSION<\/version>/<version>$NEW_VERSION<\/version>/" pom.xml
+
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
 
       - name: Commit and push new version
@@ -40,8 +41,6 @@ jobs:
           git add simple-api/pom.xml
           git commit -m "🔖 Bump version to $NEW_VERSION"
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:${{ github.ref_name }}
-        env:
-          NEW_VERSION: ${{ env.NEW_VERSION }}
 
   build-and-push-docker-image:
     needs: update-version
@@ -50,6 +49,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Extract version from pom.xml
+        id: version
+        working-directory: ./simple-api
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "VERSION=$VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
@@ -60,7 +67,7 @@ jobs:
           context: ./simple-api
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:${{ env.NEW_VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:${{ env.VERSION }}
           push: true
 
       - name: Build and push database
@@ -68,7 +75,7 @@ jobs:
         with:
           context: ./database
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:${{ env.NEW_VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:${{ env.VERSION }}
           push: true
 
       - name: Build and push httpd
@@ -76,5 +83,5 @@ jobs:
         with:
           context: ./http-server
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:${{ env.NEW_VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:${{ env.VERSION }}
           push: true
