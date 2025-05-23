@@ -15,6 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set version from pom.xml
+        id: version
+        run: |
+          sudo apt-get update && sudo apt-get install -y libxml2-utils
+          VERSION=$(xmllint --xpath "string(//project/version)" simple-api/pom.xml)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Login to DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
 
@@ -24,6 +31,7 @@ jobs:
           context: ./simple-api
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:${{ steps.version.outputs.VERSION }}
             ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:${{ github.run_number }}
           push: true
 
@@ -32,7 +40,7 @@ jobs:
         with:
           context: ./database
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:${{ steps.version.outputs.VERSION }}
             ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:${{ github.run_number }}
           push: true
 
@@ -41,8 +49,6 @@ jobs:
         with:
           context: ./http-server
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:${{ steps.version.outputs.VERSION }}
             ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:${{ github.run_number }}
           push: true
-
-          
