@@ -22,19 +22,25 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./simple-api
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-simple-api:${{ github.run_number }}
           push: true
 
       - name: Build and push database
         uses: docker/build-push-action@v6
         with:
           context: ./database
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-database:${{ github.run_number }}
           push: true
 
       - name: Build and push httpd
         uses: docker/build-push-action@v6
         with:
           context: ./http-server
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/tp2gitaction-httpd:${{ github.run_number }}
           push: true
