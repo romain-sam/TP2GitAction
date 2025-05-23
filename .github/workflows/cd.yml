@@ -20,6 +20,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libxml2-utils
           VERSION=$(xmllint --xpath "string(//project/version)" simple-api/pom.xml)
+          if [ -z "$VERSION" ]; then VERSION="snapshot"; fi
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Login to DockerHub
