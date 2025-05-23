@@ -6,6 +6,9 @@ on:
     types:
       - completed
 
+permissions:
+  contents: write  # ✅ Autorise le push vers le repo
+
 jobs:
   update-version:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -25,6 +28,7 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git add simple-api/pom.xml
           git commit -m "Update version to 0.0.${{ github.run_number }}-SNAPSHOT"
           git push
